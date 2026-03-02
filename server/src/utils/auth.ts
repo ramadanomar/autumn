@@ -68,17 +68,20 @@ export const auth = betterAuth({
 			"https://*.useautumn.com",
 		];
 
+		// Always trust CLIENT_URL and CHECKOUT_BASE_URL (required for self-hosted deployments)
+		if (process.env.CLIENT_URL) {
+			origins.push(process.env.CLIENT_URL);
+		}
+		if (process.env.CHECKOUT_BASE_URL) {
+			origins.push(process.env.CHECKOUT_BASE_URL);
+		}
+
 		// Better Auth validates origins independently from app-level CORS.
 		// Allow local multi-port setups for any non-production runtime.
 		if (process.env.NODE_ENV !== "production") {
 			// Add ports 3000-3010 for multiple instances
 			for (let i = 0; i <= 10; i++) {
 				origins.push(`http://localhost:${3000 + i}`);
-			}
-
-			// Support multi-worktree dev with offset ports (e.g. localhost:3100)
-			if (process.env.CLIENT_URL) {
-				origins.push(process.env.CLIENT_URL);
 			}
 		}
 
