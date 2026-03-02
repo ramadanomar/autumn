@@ -16,19 +16,30 @@ export const ALLOWED_ORIGINS = [
 	"https://localhost:8080",
 ];
 
+const toOrigin = ({ url }: { url?: string }): string | undefined => {
+	if (!url) return undefined;
+
+	try {
+		return new URL(url).origin;
+	} catch {
+		return undefined;
+	}
+};
+
+export const getSelfHostedOrigins = (): string[] => {
+	const origins = [
+		toOrigin({ url: process.env.CLIENT_URL }),
+		toOrigin({ url: process.env.CHECKOUT_BASE_URL }),
+	];
+
+	return origins.filter((origin): origin is string => Boolean(origin));
+};
+
 /** Allow any localhost origin in dev for multi-worktree support */
 export const isAllowedOrigin = (origin: string): string | undefined => {
 	if (ALLOWED_ORIGINS.includes(origin)) return origin;
-
-	// Allow CLIENT_URL and CHECKOUT_BASE_URL for self-hosted deployments
-	if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) {
-		return origin;
-	}
-	if (
-		process.env.CHECKOUT_BASE_URL &&
-		origin === process.env.CHECKOUT_BASE_URL
-	) {
-		return origin;
+	for (const selfHostedOrigin of getSelfHostedOrigins()) {
+		if (origin === selfHostedOrigin) return origin;
 	}
 
 	if (

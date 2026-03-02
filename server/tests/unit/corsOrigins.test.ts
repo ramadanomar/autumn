@@ -78,10 +78,28 @@ describe("isAllowedOrigin", () => {
 			).toBe("https://autumn-dashboard-production.up.railway.app");
 		});
 
+		test("allows CLIENT_URL origin when URL has path and trailing slash", () => {
+			process.env.NODE_ENV = "production";
+			process.env.CLIENT_URL =
+				"https://autumn-dashboard-production.up.railway.app/app/";
+			expect(
+				isAllowedOrigin("https://autumn-dashboard-production.up.railway.app"),
+			).toBe("https://autumn-dashboard-production.up.railway.app");
+		});
+
 		test("allows CHECKOUT_BASE_URL in production", () => {
 			process.env.NODE_ENV = "production";
 			process.env.CHECKOUT_BASE_URL =
 				"https://autumn-checkout-production.up.railway.app";
+			expect(
+				isAllowedOrigin("https://autumn-checkout-production.up.railway.app"),
+			).toBe("https://autumn-checkout-production.up.railway.app");
+		});
+
+		test("allows CHECKOUT_BASE_URL origin when URL has path", () => {
+			process.env.NODE_ENV = "production";
+			process.env.CHECKOUT_BASE_URL =
+				"https://autumn-checkout-production.up.railway.app/c";
 			expect(
 				isAllowedOrigin("https://autumn-checkout-production.up.railway.app"),
 			).toBe("https://autumn-checkout-production.up.railway.app");
@@ -106,6 +124,16 @@ describe("isAllowedOrigin", () => {
 			expect(isAllowedOrigin("https://evil.com")).toBeUndefined();
 			expect(
 				isAllowedOrigin("https://not-autumn.up.railway.app"),
+			).toBeUndefined();
+		});
+
+		test("ignores invalid self-hosted URL env values", () => {
+			process.env.NODE_ENV = "production";
+			process.env.CLIENT_URL = "autumn-dashboard-production.up.railway.app";
+			process.env.CHECKOUT_BASE_URL = "not-a-url";
+
+			expect(
+				isAllowedOrigin("https://autumn-dashboard-production.up.railway.app"),
 			).toBeUndefined();
 		});
 
